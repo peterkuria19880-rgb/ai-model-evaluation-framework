@@ -2,11 +2,20 @@
 AI Model Evaluation Framework
 Author: Peter Kuria, PhD
 
-This module provides a structured approach to evaluating AI model outputs
-based on accuracy, relevance, clarity, and instruction adherence.
+This module provides a structured and extensible approach
+to evaluating AI model outputs across multiple dimensions.
 """
 
 from dataclasses import dataclass
+from typing import Dict
+
+
+def _validate_score(value: float, name: str) -> None:
+    """
+    Validate that a score is within the normalized range [0, 1].
+    """
+    if not 0.0 <= value <= 1.0:
+        raise ValueError(f"{name} must be between 0 and 1. Got {value}.")
 
 
 @dataclass
@@ -17,7 +26,10 @@ class EvaluationResult:
     instruction_adherence: float
 
     def overall_score(self) -> float:
-        """Compute weighted overall evaluation score."""
+        """
+        Compute weighted overall evaluation score.
+        """
+
         weights = {
             "accuracy": 0.4,
             "relevance": 0.3,
@@ -31,14 +43,27 @@ class EvaluationResult:
             + self.clarity * weights["clarity"]
             + self.instruction_adherence * weights["instruction_adherence"]
         )
+
         return round(score, 3)
 
 
-def evaluate_output(accuracy, relevance, clarity, instruction_adherence):
+def evaluate_output(
+    accuracy: float,
+    relevance: float,
+    clarity: float,
+    instruction_adherence: float,
+) -> Dict[str, float]:
     """
-    Evaluate an AI model output using structured scoring.
-    Scores should be between 0 and 1.
+    Evaluate AI model output using structured weighted scoring.
+
+    All input metrics must be normalized between 0 and 1.
     """
+
+    _validate_score(accuracy, "accuracy")
+    _validate_score(relevance, "relevance")
+    _validate_score(clarity, "clarity")
+    _validate_score(instruction_adherence, "instruction_adherence")
+
     result = EvaluationResult(
         accuracy=accuracy,
         relevance=relevance,
@@ -53,8 +78,3 @@ def evaluate_output(accuracy, relevance, clarity, instruction_adherence):
         "instruction_adherence": result.instruction_adherence,
         "overall_score": result.overall_score(),
     }
-
-
-if __name__ == "__main__":
-    sample = evaluate_output(0.9, 0.85, 0.8, 0.95)
-    print("Evaluation Summary:", sample)
